@@ -7,6 +7,7 @@ const COLLISION_MASK_CARD = 1
 var screen_size
 var card_being_dragged
 var is_hovering_on_card
+var hovered_card = null
 
 
 
@@ -18,8 +19,23 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	if card_being_dragged:
 		var mouse_pos = get_global_mouse_position()
-		card_being_dragged.global_position = Vector2(clamp(mouse_pos.x, 0, screen_size.x),
-			clamp(mouse_pos.y, 0, screen_size.y))
+		card_being_dragged.global_position = Vector2(
+			clamp(mouse_pos.x, 0, screen_size.x),
+			clamp(mouse_pos.y, 0, screen_size.y)
+		)
+	else:
+		var new_hovered_card = raycast_check_for_card()
+		
+		if new_hovered_card != hovered_card:
+			if hovered_card:
+				on_hovered_off_card(hovered_card)
+			if new_hovered_card:
+				on_hovered_over_card(new_hovered_card)
+			
+			hovered_card = new_hovered_card
+			#on_hovered_over_card(hovered_card)
+		#elif not hovered_card and is_hovering_on_card:
+			#on_hovered_off_card(card)
 
 func  _input(event):
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
@@ -32,7 +48,7 @@ func  _input(event):
 				finish_drag()
 
 func start_drag(card):
-	card.get_parent().move_child(card, -1)
+	#card.get_parent().move_child(card, -1)
 	card_being_dragged = card
 	card.scale = Vector2(1, 1)
 	
@@ -82,6 +98,7 @@ func raycast_check_for_card():
 	var result = space_state.intersect_point(parameters)
 	if result.size() > 0:
 		#return result[0].collider.get_parent()
+		#print(get_card_with_highest_z_index(result))
 		return get_card_with_highest_z_index(result)
 	return null
 
@@ -93,8 +110,9 @@ func get_card_with_highest_z_index(cards):
 	
 	#loop läbi ülejäänud kaartide, et leida kõrgem z index
 	for i in range(1, cards.size()):
-		var current_card = cards[1].collider.get_parent()
+		var current_card = cards[i].collider.get_parent()
 		if current_card.z_index > highest_z_index:
 			highest_z_card = current_card
 			highest_z_index = current_card.z_index
+			print(current_card)
 	return highest_z_card
