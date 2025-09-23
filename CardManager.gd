@@ -1,6 +1,7 @@
 extends Node2D
 
 const COLLISION_MASK_CARD = 1
+const COLLISION_MASK_CARD_SLOT = 2
 
 
 
@@ -54,7 +55,13 @@ func start_drag(card):
 	
 	
 func finish_drag():
-	card_being_dragged.scale = Vector2(1.05, 1.05)
+	card_being_dragged.scale = Vector2(1.15, 1.15)
+	var card_slot_found = raycast_check_for_card_slot()
+	if card_slot_found and not card_slot_found.card_in_slot:
+		#Card dropped in empty card slot
+		card_being_dragged.global_position = card_slot_found.global_position
+		card_being_dragged.get_node("Area2D/CollisionShape2D").disabled = true
+		card_slot_found.card_in_slot = true
 	card_being_dragged = null
 	
 
@@ -83,11 +90,28 @@ func on_hovered_off_card(card):
 
 func highlight_card(card, hovered):
 	if hovered:
-		card.scale = Vector2(1.05, 1.05)
+		card.scale = Vector2(1.15, 1.15)
 		card.z_index = 2
 	else:
 		card.scale = Vector2(1, 1)
 		card.z_index = 1
+
+
+func raycast_check_for_card_slot():
+	var space_state = get_world_2d().direct_space_state
+	var parameters = PhysicsPointQueryParameters2D.new()
+	parameters.position = get_global_mouse_position()
+	parameters.collide_with_areas = true
+	parameters.collision_mask = COLLISION_MASK_CARD_SLOT
+	var result = space_state.intersect_point(parameters)
+	if result.size() > 0:
+		return result[0].collider.get_parent()
+		#print(get_card_with_highest_z_index(result))
+		#return get_card_with_highest_z_index(result)
+	return null
+
+
+
 
 func raycast_check_for_card():
 	var space_state = get_world_2d().direct_space_state
@@ -114,5 +138,4 @@ func get_card_with_highest_z_index(cards):
 		if current_card.z_index > highest_z_index:
 			highest_z_card = current_card
 			highest_z_index = current_card.z_index
-			print(current_card)
 	return highest_z_card
