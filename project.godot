@@ -11,5 +11,14 @@ config_version=5
 [application]
 
 config/name="Card game"
+run/main_scene="uid://p4stirnvnbvs"
 config/features=PackedStringArray("4.5", "Forward Plus")
 config/icon="res://icon.svg"
+
+[display]
+
+window/vsync/vsync_mode=0
+
+[rendering]
+
+2d/snap/snap_2d_transforms_to_pixel=true
